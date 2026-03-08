@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>DENT PLUS</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --blue:#1a73e8;--blue-light:#e8f0fe;--green:#34a853;--red:#ea4335;
+    --orange:#fbbc04;--bg:#f8f9ff;--card:#fff;--text:#1a1a2e;--gray:#6b7280;
+    --border:#e5e7eb;--radius:16px;--shadow:0 2px 12px rgba(26,115,232,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+  /* ── HEADER ── */
+  .header{background:linear-gradient(135deg,#1a73e8,#0d47a1);padding:20px 16px 16px;
+    position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+  .header-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .logo{width:40px;height:40px;background:rgba(255,255,255,.2);border-radius:12px;
+    display:flex;align-items:center;justify-content:center;font-size:22px}
+  .header h1{color:#fff;font-size:18px;font-weight:700}
+  .header p{color:rgba(255,255,255,.75);font-size:12px}
+
+  /* ── TABS ── */
+  .tabs{display:flex;gap:4px;background:rgba(255,255,255,.15);border-radius:12px;padding:3px}
+  .tab{flex:1;padding:7px 4px;border:none;border-radius:9px;font-size:11px;font-weight:600;
+    color:rgba(255,255,255,.75);background:transparent;cursor:pointer;transition:.2s;text-align:center}
+  .tab.active{background:#fff;color:var(--blue)}
+
+  /* ── PAGES ── */
+  .page{display:none;padding:16px;animation:fadeIn .25s ease}
+  .page.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* ── CARDS ── */
+  .card{background:var(--card);border-radius:var(--radius);padding:16px;
+    box-shadow:var(--shadow);margin-bottom:12px;border:1px solid var(--border)}
+  .card-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .card-icon{width:40px;height:40px;border-radius:12px;display:flex;
+    align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+  .ci-blue{background:var(--blue-light)}
+  .ci-green{background:#e6f4ea}
+  .ci-orange{background:#fef9e7}
+  .card-title{font-size:15px;font-weight:700;color:var(--text)}
+  .card-sub{font-size:12px;color:var(--gray)}
+
+  /* ── BOOKING STEPS ── */
+  .step-indicator{display:flex;gap:6px;margin-bottom:16px;padding:0 4px}
+  .step-dot{flex:1;height:4px;border-radius:2px;background:var(--border);transition:.3s}
+  .step-dot.done{background:var(--green)}
+  .step-dot.active{background:var(--blue)}
+
+  /* ── SECTION TITLE ── */
+  .section-title{font-size:13px;font-weight:700;color:var(--gray);
+    text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px}
+
+  /* ── SERVICE LIST ── */
+  .service-item{display:flex;align-items:center;gap:12px;padding:13px 14px;
+    background:var(--card);border-radius:12px;margin-bottom:8px;cursor:pointer;
+    border:2px solid var(--border);transition:.2s;box-shadow:var(--shadow)}
+  .service-item:hover,.service-item.selected{border-color:var(--blue);background:var(--blue-light)}
+  .svc-emoji{font-size:24px;width:40px;text-align:center}
+  .svc-info{flex:1}
+  .svc-name{font-size:14px;font-weight:600}
+  .svc-price{font-size:12px;color:var(--gray);margin-top:2px}
+  .svc-check{font-size:18px;opacity:0;transition:.2s}
+  .service-item.selected .svc-check{opacity:1;color:var(--blue)}
+
+  /* ── CATEGORY CHIPS ── */
+  .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px;
+    scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{padding:7px 14px;border-radius:20px;border:2px solid var(--border);
+    font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;
+    background:var(--card);transition:.2s;color:var(--gray)}
+  .chip.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+  /* ── DOCTOR CARDS ── */
+  .doctor-card{display:flex;align-items:center;gap:12px;padding:14px;
+    background:var(--card);border-radius:14px;margin-bottom:8px;cursor:pointer;
+    border:2px solid var(--border);transition:.2s;box-shadow:var(--shadow)}
+  .doctor-card.selected{border-color:var(--blue);background:var(--blue-light)}
+  .doc-avatar{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#667eea,#764ba2);
+    display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+  .doc-name{font-size:14px;font-weight:700}
+  .doc-spec{font-size:12px;color:var(--gray);margin-top:2px}
+  .doc-exp{font-size:11px;color:var(--blue);margin-top:3px;font-weight:600}
+  .doc-rating{display:flex;align-items:center;gap:3px;font-size:12px;color:var(--orange);font-weight:600}
+
+  /* ── CALENDAR ── */
+  .calendar{background:var(--card);border-radius:var(--radius);padding:14px;
+    box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:12px}
+  .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .cal-title{font-size:15px;font-weight:700}
+  .cal-nav{width:32px;height:32px;border:none;border-radius:8px;background:var(--blue-light);
+    color:var(--blue);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cal-day-name{text-align:center;font-size:10px;font-weight:700;color:var(--gray);padding:4px 0}
+  .cal-day{text-align:center;padding:8px 4px;border-radius:8px;font-size:13px;font-weight:600;
+    cursor:pointer;transition:.2s;border:2px solid transparent}
+  .cal-day:hover:not(.disabled){background:var(--blue-light);color:var(--blue)}
+  .cal-day.selected{background:var(--blue);color:#fff}
+  .cal-day.today{border-color:var(--blue);color:var(--blue)}
+  .cal-day.disabled{color:var(--border);cursor:not-allowed}
+
+  /* ── TIME SLOTS ── */
+  .time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+  .time-slot{padding:10px 6px;border-radius:10px;border:2px solid var(--border);
+    text-align:center;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;background:var(--card)}
+  .time-slot:hover:not(.busy){border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+  .time-slot.selected{background:var(--blue);border-color:var(--blue);color:#fff}
+  .time-slot.busy{background:#f3f4f6;color:var(--border);cursor:not-allowed;
+    text-decoration:line-through}
+
+  /* ── CONFIRM BLOCK ── */
+  .confirm-row{display:flex;justify-content:space-between;align-items:center;
+    padding:10px 0;border-bottom:1px solid var(--border)}
+  .confirm-row:last-child{border-bottom:none}
+  .confirm-label{font-size:13px;color:var(--gray)}
+  .confirm-value{font-size:13px;font-weight:600;color:var(--text);text-align:right;max-width:60%}
+
+  /* ── DENTAL CHART ── */
+  .dental-chart{background:var(--card);border-radius:var(--radius);padding:16px;
+    box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:12px}
+  .teeth-row{display:flex;gap:3px;justify-content:center;margin-bottom:6px}
+  .tooth{width:28px;height:34px;border-radius:6px;border:2px solid var(--border);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    cursor:pointer;transition:.2s;font-size:9px;font-weight:700;color:var(--gray)}
+  .tooth:hover{transform:scale(1.1);z-index:1}
+  .tooth.healthy{background:#e6f4ea;border-color:#34a853;color:#34a853}
+  .tooth.caries{background:#fef9e7;border-color:#fbbc04;color:#f59e0b}
+  .tooth.treated{background:#e8f0fe;border-color:#1a73e8;color:#1a73e8}
+  .tooth.extracted{background:#fce8e6;border-color:#ea4335;color:#ea4335}
+  .tooth.crown{background:#f3e8ff;border-color:#7c3aed;color:#7c3aed}
+  .tooth.implant{background:#ecfdf5;border-color:#059669;color:#059669}
+  .tooth-num{font-size:8px;margin-top:1px}
+
+  /* ── LEGEND ── */
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray)}
+  .legend-dot{width:12px;height:12px;border-radius:3px;border:2px solid}
+
+  /* ── APPOINTMENT CARD ── */
+  .appt-card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px;
+    box-shadow:var(--shadow);border-left:4px solid var(--blue);border-top:1px solid var(--border);
+    border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .appt-status{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:8px}
+  .status-pending{background:#fef9e7;color:#f59e0b}
+  .status-confirmed{background:#e6f4ea;color:#34a853}
+  .status-done{background:#e8f0fe;color:#1a73e8}
+  .status-cancelled{background:#fce8e6;color:#ea4335}
+  .appt-date{font-size:16px;font-weight:700;margin-bottom:4px}
+  .appt-detail{font-size:13px;color:var(--gray);margin-top:3px;display:flex;align-items:center;gap:5px}
+
+  /* ── INPUTS ── */
+  .input-group{margin-bottom:14px}
+  .input-label{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;display:block}
+  .input-field{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;
+    font-size:14px;background:var(--card);color:var(--text);transition:.2s;outline:none}
+  .input-field:focus{border-color:var(--blue)}
+  textarea.input-field{min-height:80px;resize:vertical}
+
+  /* ── BUTTONS ── */
+  .btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;
+    font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn-primary{background:linear-gradient(135deg,var(--blue),#0d47a1);color:#fff}
+  .btn-primary:active{transform:scale(.98)}
+  .btn-secondary{background:var(--blue-light);color:var(--blue)}
+  .btn-success{background:linear-gradient(135deg,var(--green),#1e7e34);color:#fff}
+  .btn-danger{background:linear-gradient(135deg,var(--red),#c0392b);color:#fff}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+
+  /* ── STATS GRID ── */
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .stat-card{background:var(--card);border-radius:14px;padding:14px;text-align:center;
+    box-shadow:var(--shadow);border:1px solid var(--border)}
+  .stat-value{font-size:22px;font-weight:800;color:var(--blue)}
+  .stat-label{font-size:11px;color:var(--gray);margin-top:3px}
+
+  /* ── EMPTY STATE ── */
+  .empty{text-align:center;padding:40px 20px;color:var(--gray)}
+  .empty-icon{font-size:52px;margin-bottom:12px}
+  .empty h3{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px}
+  .empty p{font-size:13px}
+
+  /* ── LOADER ── */
+  .loader{display:flex;justify-content:center;padding:30px}
+  .spinner{width:32px;height:32px;border:3px solid var(--border);
+    border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ── SUCCESS SCREEN ── */
+  .success-screen{text-align:center;padding:30px 20px;animation:popIn .4s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes popIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+  .success-icon{font-size:70px;margin-bottom:16px}
+  .success-title{font-size:22px;font-weight:800;color:var(--green);margin-bottom:8px}
+  .success-sub{font-size:14px;color:var(--gray);line-height:1.5}
+
+  /* ── RATING STARS ── */
+  .stars{display:flex;gap:8px;justify-content:center;margin:16px 0}
+  .star{font-size:36px;cursor:pointer;opacity:.3;transition:.2s}
+  .star.active{opacity:1;transform:scale(1.15)}
+
+  /* ── TREATMENT ITEM ── */
+  .treatment-item{padding:12px 0;border-bottom:1px solid var(--border)}
+  .treatment-item:last-child{border-bottom:none}
+  .treat-tooth{display:inline-block;background:var(--blue-light);color:var(--blue);
+    border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-bottom:4px}
+  .treat-proc{font-size:14px;font-weight:600}
+  .treat-meta{font-size:12px;color:var(--gray);margin-top:3px}
+
+  /* ── PRICE TAG ── */
+  .price-tag{display:inline-block;background:#e6f4ea;color:var(--green);
+    border-radius:20px;padding:4px 12px;font-size:13px;font-weight:700}
+
+  /* ── KASPI PAY ── */
+  .kaspi-btn{background:linear-gradient(135deg,#ff6b00,#ff8c00);color:#fff;
+    border-radius:12px;padding:14px;border:none;width:100%;font-size:15px;
+    font-weight:700;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;gap:8px;margin-top:8px}
+
+  .back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;
+    color:var(--blue);font-size:14px;font-weight:600;cursor:pointer;padding:8px 0;margin-bottom:8px}
+  .badge{background:var(--blue);color:#fff;border-radius:20px;padding:2px 8px;
+    font-size:11px;font-weight:700;margin-left:6px}
+
+  /* ── NOTICE ── */
+  .notice{background:var(--blue-light);border-left:4px solid var(--blue);
+    border-radius:8px;padding:10px 12px;font-size:12px;color:var(--blue);margin-bottom:12px}
+
+  .hidden{display:none!important}
+  .divider{text-align:center;color:var(--gray);font-size:12px;margin:8px 0;position:relative}
+  .divider::before,.divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:var(--border)}
+  .divider::before{left:0}.divider::after{right:0}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo">🦷</div>
+    <div><h1 id="clinicName">DENT PLUS</h1><p>Стоматологическая клиника</p></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('booking')">📅 Запись</button>
+    <button class="tab" onclick="switchTab('chart')">🦷 Карта</button>
+    <button class="tab" onclick="switchTab('history')">📋 Мои записи</button>
+    <button class="tab" onclick="switchTab('profile')">👤 Профиль</button>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB: BOOKING ═══════════════ -->
+<div class="page active" id="page-booking">
+
+  <!-- Step 0: выбор услуги -->
+  <div id="step-service">
+    <div class="step-indicator">
+      <div class="step-dot active" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+      <div class="step-dot" id="dot3"></div>
+      <div class="step-dot" id="dot4"></div>
+    </div>
+    <div class="section-title">Выберите услугу</div>
+    <div class="chips" id="categoryChips"></div>
+    <div id="servicesList"></div>
+    <button class="btn btn-primary" id="btnStep1" disabled onclick="goToStep2()">
+      Далее — Выбор врача →
+    </button>
+  </div>
+
+  <!-- Step 1: выбор врача -->
+  <div id="step-doctor" class="hidden">
+    <button class="back-btn" onclick="goToStep(1)">← Назад</button>
+    <div class="step-indicator">
+      <div class="step-dot done"></div>
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+    </div>
+    <div class="section-title">Выберите врача</div>
+    <div id="doctorsList"></div>
+    <button class="btn btn-primary" id="btnStep2" disabled onclick="goToStep3()">
+      Далее — Выбор даты →
+    </button>
+  </div>
+
+  <!-- Step 2: выбор даты и времени -->
+  <div id="step-datetime" class="hidden">
+    <button class="back-btn" onclick="goToStep(2)">← Назад</button>
+    <div class="step-indicator">
+      <div class="step-dot done"></div>
+      <div class="step-dot done"></div>
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+    </div>
+    <div class="section-title">Выберите дату</div>
+    <div class="calendar">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="prevMonth()">‹</button>
+        <span class="cal-title" id="calTitle"></span>
+        <button class="cal-nav" onclick="nextMonth()">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+    <div class="section-title">Выберите время</div>
+    <div class="time-grid" id="timeGrid"></div>
+    <button class="btn btn-primary" id="btnStep3" disabled onclick="goToStep4()">
+      Далее — Подтверждение →
+    </button>
+  </div>
+
+  <!-- Step 3: подтверждение -->
+  <div id="step-confirm" class="hidden">
+    <button class="back-btn" onclick="goToStep(3)">← Назад</button>
+    <div class="step-indicator">
+      <div class="step-dot done"></div>
+      <div class="step-dot done"></div>
+      <div class="step-dot done"></div>
+      <div class="step-dot active"></div>
+    </div>
+    <div class="section-title">Подтверждение записи</div>
+    <div class="card">
+      <div id="confirmDetails"></div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Жалоба / комментарий (необязательно)</label>
+      <textarea class="input-field" id="complaintInput" placeholder="Болит зуб, нужна консультация..."></textarea>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Ваш номер телефона</label>
+      <input class="input-field" id="phoneInput" type="tel" placeholder="+7 777 000 00 00">
+    </div>
+    <div class="notice">⏰ Вы получите напоминание за 24 часа и 2 часа до приёма</div>
+    <button class="btn btn-success" onclick="submitBooking()">✅ Записаться</button>
+  </div>
+
+  <!-- Success -->
+  <div id="step-success" class="hidden">
+    <div class="success-screen">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Запись принята!</div>
+      <div class="success-sub" id="successText"></div>
+      <br>
+      <button class="kaspi-btn" id="kaspiBtn" onclick="payKaspi()">💳 Оплатить через Kaspi</button>
+      <br><br>
+      <button class="btn btn-secondary" onclick="resetBooking()">📅 Записаться ещё раз</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════ TAB: DENTAL CHART ═══════════════ -->
+<div class="page" id="page-chart">
+  <div class="section-title">Зубная формула</div>
+  <div class="notice">Нажмите на зуб чтобы посмотреть или изменить статус</div>
+
+  <div class="dental-chart">
+    <div style="text-align:center;font-size:11px;color:var(--gray);margin-bottom:8px;font-weight:600">ВЕРХНЯЯ ЧЕЛЮСТЬ</div>
+    <div class="teeth-row" id="upperRight"></div>
+    <div style="text-align:center;font-size:10px;color:var(--gray);margin:4px 0">— центр —</div>
+    <div class="teeth-row" id="upperLeft"></div>
+    <div style="text-align:center;font-size:11px;color:var(--gray);margin:10px 0 8px;font-weight:600">НИЖНЯЯ ЧЕЛЮСТЬ</div>
+    <div class="teeth-row" id="lowerLeft"></div>
+    <div style="text-align:center;font-size:10px;color:var(--gray);margin:4px 0">— центр —</div>
+    <div class="teeth-row" id="lowerRight"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#e6f4ea;border-color:#34a853"></div>Здоровый</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fef9e7;border-color:#fbbc04"></div>Кариес</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e8f0fe;border-color:#1a73e8"></div>Лечён</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fce8e6;border-color:#ea4335"></div>Удалён</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f3e8ff;border-color:#7c3aed"></div>Коронка</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ecfdf5;border-color:#059669"></div>Имплант</div>
+    </div>
+  </div>
+
+  <!-- Tooth detail modal -->
+  <div id="toothDetail" class="hidden">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon ci-blue">🦷</div>
+        <div><div class="card-title" id="toothTitle">Зуб #</div>
+          <div class="card-sub" id="toothStatus">Статус</div></div>
+      </div>
+      <div id="toothHistory"></div>
+    </div>
+  </div>
+
+  <div class="section-title">История лечения</div>
+  <div id="treatmentHistory"></div>
+</div>
+
+<!-- ═══════════════ TAB: HISTORY ═══════════════ -->
+<div class="page" id="page-history">
+  <div class="section-title">Мои записи</div>
+  <div id="appointmentsList"></div>
+</div>
+
+<!-- ═══════════════ TAB: PROFILE ═══════════════ -->
+<div class="page" id="page-profile">
+  <div class="stats-grid" id="profileStats"></div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon ci-blue">👤</div>
+      <div><div class="card-title" id="profileName">Имя</div>
+        <div class="card-sub" id="profileSub">Пациент</div></div>
+    </div>
+    <div id="profileInfo"></div>
+  </div>
+  <div class="section-title">Программа лояльности</div>
+  <div class="card">
+    <div style="text-align:center;padding:10px">
+      <div style="font-size:36px;font-weight:800;color:var(--blue)" id="loyaltyPoints">0</div>
+      <div style="font-size:13px;color:var(--gray)">бонусных баллов</div>
+      <div style="font-size:12px;color:var(--gray);margin-top:8px">1 посещение = 100 баллов<br>500 баллов = скидка 5%</div>
+    </div>
+  </div>
+  <div class="section-title">Оставить отзыв</div>
+  <div class="card" id="reviewBlock">
+    <div style="font-size:14px;margin-bottom:8px">Как вы оцениваете нашу клинику?</div>
+    <div class="stars" id="ratingStars">
+      <span class="star" onclick="setRating(1)">⭐</span>
+      <span class="star" onclick="setRating(2)">⭐</span>
+      <span class="star" onclick="setRating(3)">⭐</span>
+      <span class="star" onclick="setRating(4)">⭐</span>
+      <span class="star" onclick="setRating(5)">⭐</span>
+    </div>
+    <textarea class="input-field" id="reviewText" placeholder="Ваш отзыв..."></textarea>
+    <br><br>
+    <button class="btn btn-primary" onclick="submitReview()">Отправить отзыв</button>
+  </div>
+</div>
+
+<!-- ═══════════════ TOOTH MODAL ═══════════════ -->
+<div id="toothModal" style="display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.5);display:none;align-items:flex-end">
+  <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;padding:20px;max-height:60vh;overflow-y:auto">
+    <div style="font-size:16px;font-weight:700;margin-bottom:12px" id="modalToothTitle">Зуб #</div>
+    <div class="section-title">Статус</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="toothStatusGrid"></div>
+    <br>
+    <button class="btn btn-secondary" onclick="closeToothModal()">Закрыть</button>
+  </div>
+</div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+if(tg){ tg.ready(); tg.expand(); }
+
+const params = new URLSearchParams(location.search);
+const USER_ID   = parseInt(params.get('uid') || tg?.initDataUnsafe?.user?.id || 0);
+const USER_NAME = decodeURIComponent(params.get('name') || tg?.initDataUnsafe?.user?.first_name || 'Пациент');
+const CLINIC_ID = parseInt(params.get('clinic_id') || 1);
+const PAGE      = params.get('page') || 'booking';
+const API       = '';
+
+let state = {
+  services:[], doctors:[], selectedService:null, selectedDoctor:null,
+  selectedDate:null, selectedTime:null, calYear:0, calMonth:0,
+  rating:0, chart:{}, treatments:[]
+};
+
+// ═══════════════ INIT ═══════════════
+async function init(){
+  const d = new Date(); state.calYear=d.getFullYear(); state.calMonth=d.getMonth();
+  if(PAGE==='chart') switchTab('chart');
+  else if(PAGE==='history') switchTab('history');
+  else switchTab('booking');
+  loadBookingStep1();
+  loadProfile();
+  loadDentalChart();
+  loadAppointments();
+  loadTreatments();
+}
+
+// ═══════════════ TABS ═══════════════
+function switchTab(tab){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  const idx={booking:0,chart:1,history:2,profile:3}[tab]??0;
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+}
+
+// ═══════════════ BOOKING STEP 1: SERVICES ═══════════════
+async function loadBookingStep1(){
+  const [cats, svcs] = await Promise.all([
+    fetch(`${API}/api/categories/${CLINIC_ID}`).then(r=>r.json()),
+    fetch(`${API}/api/services/${CLINIC_ID}`).then(r=>r.json())
+  ]);
+  state.services = svcs;
+
+  const chips = document.getElementById('categoryChips');
+  chips.innerHTML = `<div class="chip active" onclick="filterCat(0,this)">🔍 Все</div>`;
+  cats.forEach(c=>{
+    chips.innerHTML += `<div class="chip" onclick="filterCat(${c.id},this)">${c.emoji} ${c.name}</div>`;
+  });
+  renderServices(svcs);
+}
+
+function filterCat(catId, el){
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  const filtered = catId ? state.services.filter(s=>s.category_id===catId) : state.services;
+  renderServices(filtered);
+}
+
+function renderServices(svcs){
+  const el = document.getElementById('servicesList');
+  if(!svcs.length){el.innerHTML='<div class="empty"><div class="empty-icon">🦷</div><p>Нет услуг</p></div>';return}
+  el.innerHTML = svcs.map(s=>`
+    <div class="service-item" id="svc_${s.id}" onclick="selectService(${s.id})">
+      <div class="svc-emoji">${s.emoji||'🦷'}</div>
+      <div class="svc-info">
+        <div class="svc-name">${s.name}</div>
+        <div class="svc-price">от ${fmtPrice(s.price_from)} ${s.price_to?'— до '+fmtPrice(s.price_to):'тг'} · ${s.duration_min} мин</div>
+        ${s.description?`<div class="svc-price" style="margin-top:3px">${s.description}</div>`:''}
+      </div>
+      <div class="svc-check">✓</div>
+    </div>`).join('');
+}
+
+function selectService(id){
+  state.selectedService = state.services.find(s=>s.id===id);
+  document.querySelectorAll('.service-item').forEach(el=>{
+    el.classList.toggle('selected', el.id===`svc_${id}`);
+  });
+  document.getElementById('btnStep1').disabled = false;
+  if(tg) tg.HapticFeedback?.selectionChanged();
+}
+
+async function goToStep2(){
+  if(!state.selectedService) return;
+  showStep('doctor');
+  const docs = await fetch(`${API}/api/doctors/${CLINIC_ID}`).then(r=>r.json());
+  state.doctors = docs;
+  const el = document.getElementById('doctorsList');
+  el.innerHTML = docs.map(d=>{
+    const stars = '⭐'.repeat(Math.round(d.rating||0));
+    return `<div class="doctor-card" id="doc_${d.id}" onclick="selectDoctor(${d.id})">
+      <div class="doc-avatar">👨‍⚕️</div>
+      <div style="flex:1">
+        <div class="doc-name">${d.full_name}</div>
+        <div class="doc-spec">${d.speciality}</div>
+        <div class="doc-exp">Опыт: ${d.experience_years} лет</div>
+        <div class="doc-rating">${stars} ${d.rating||''} (${d.reviews||0} отз.)</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectDoctor(id){
+  state.selectedDoctor = state.doctors.find(d=>d.id===id);
+  document.querySelectorAll('.doctor-card').forEach(el=>{
+    el.classList.toggle('selected', el.id===`doc_${id}`);
+  });
+  document.getElementById('btnStep2').disabled = false;
+  if(tg) tg.HapticFeedback?.selectionChanged();
+}
+
+function goToStep3(){
+  if(!state.selectedDoctor) return;
+  showStep('datetime');
+  renderCalendar();
+}
+
+// ═══════════════ CALENDAR ═══════════════
+function renderCalendar(){
+  const months=['Январь','Февраль','Март','Апрель','Май','Июнь',
+    'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  document.getElementById('calTitle').textContent=`${months[state.calMonth]} ${state.calYear}`;
+  const grid=document.getElementById('calGrid');
+  const days=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  grid.innerHTML=days.map(d=>`<div class="cal-day-name">${d}</div>`).join('');
+  const first=new Date(state.calYear,state.calMonth,1);
+  let startDay=(first.getDay()||7)-1;
+  const total=new Date(state.calYear,state.calMonth+1,0).getDate();
+  const today=new Date();
+  for(let i=0;i<startDay;i++) grid.innerHTML+=`<div></div>`;
+  for(let d=1;d<=total;d++){
+    const dt=new Date(state.calYear,state.calMonth,d);
+    const dateStr=dt.toISOString().split('T')[0];
+    const isPast=dt<new Date(today.getFullYear(),today.getMonth(),today.getDate());
+    const isSun=dt.getDay()===0;
+    const isToday=dt.toDateString()===today.toDateString();
+    const isSel=dateStr===state.selectedDate;
+    let cls='cal-day';
+    if(isPast||isSun) cls+=' disabled';
+    else{ if(isToday) cls+=' today'; if(isSel) cls+=' selected'; }
+    grid.innerHTML+=`<div class="${cls}" onclick="${isPast||isSun?'':`selectDate('${dateStr}')`}">${d}</div>`;
+  }
+}
+
+function prevMonth(){ state.calMonth--; if(state.calMonth<0){state.calMonth=11;state.calYear--;} renderCalendar(); }
+function nextMonth(){ state.calMonth++; if(state.calMonth>11){state.calMonth=0;state.calYear++;} renderCalendar(); }
+
+async function selectDate(dateStr){
+  state.selectedDate=dateStr; state.selectedTime=null;
+  renderCalendar();
+  document.getElementById('btnStep3').disabled=true;
+  const el=document.getElementById('timeGrid');
+  el.innerHTML=`<div class="loader" style="grid-column:1/-1"><div class="spinner"></div></div>`;
+  const slots=await fetch(`${API}/api/slots/${state.selectedDoctor.id}/${dateStr}`).then(r=>r.json());
+  el.innerHTML=slots.map(s=>`
+    <div class="time-slot ${s.available?'':'busy'}" id="slot_${s.time}"
+      onclick="${s.available?`selectTime('${s.time}')`:''}">${s.time}</div>`).join('');
+}
+
+function selectTime(t){
+  state.selectedTime=t;
+  document.querySelectorAll('.time-slot').forEach(el=>{
+    el.classList.toggle('selected', el.id===`slot_${t}`);
+  });
+  document.getElementById('btnStep3').disabled=false;
+  if(tg) tg.HapticFeedback?.selectionChanged();
+}
+
+function goToStep4(){
+  if(!state.selectedDate||!state.selectedTime) return;
+  showStep('confirm');
+  const svc=state.selectedService;
+  const doc=state.selectedDoctor;
+  document.getElementById('confirmDetails').innerHTML=`
+    <div class="confirm-row"><span class="confirm-label">🦷 Услуга</span><span class="confirm-value">${svc.emoji} ${svc.name}</span></div>
+    <div class="confirm-row"><span class="confirm-label">👨‍⚕️ Врач</span><span class="confirm-value">${doc.full_name}</span></div>
+    <div class="confirm-row"><span class="confirm-label">📅 Дата</span><span class="confirm-value">${formatDate(state.selectedDate)}</span></div>
+    <div class="confirm-row"><span class="confirm-label">🕐 Время</span><span class="confirm-value">${state.selectedTime}</span></div>
+    <div class="confirm-row"><span class="confirm-label">⏱ Длительность</span><span class="confirm-value">${svc.duration_min} мин</span></div>
+    <div class="confirm-row"><span class="confirm-label">💰 Стоимость</span><span class="confirm-value"><span class="price-tag">от ${fmtPrice(svc.price_from)}</span></span></div>`;
+}
+
+async function submitBooking(){
+  const phone=document.getElementById('phoneInput').value;
+  const complaint=document.getElementById('complaintInput').value;
+  const btn=document.querySelector('#step-confirm .btn-success');
+  btn.disabled=true; btn.textContent='⏳ Отправляем...';
+  try{
+    const res=await fetch(`${API}/api/appointment`,{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        clinic_id:CLINIC_ID, patient_id:USER_ID,
+        patient_name:USER_NAME, doctor_id:state.selectedDoctor.id,
+        service_id:state.selectedService.id,
+        appt_date:state.selectedDate, appt_time:state.selectedTime,
+        duration_min:state.selectedService.duration_min,
+        complaint,phone,username:tg?.initDataUnsafe?.user?.username||''
+      })
+    });
+    const data=await res.json();
+    if(data.success){
+      showStep('success');
+      document.getElementById('successText').innerHTML=
+        `👨‍⚕️ <b>${state.selectedDoctor.full_name}</b><br>
+         📅 ${formatDate(state.selectedDate)} в ${state.selectedTime}<br><br>
+         Ждём вас! Напомним за 24 часа и 2 часа до приёма 📱`;
+      if(tg) tg.HapticFeedback?.notificationOccurred('success');
+    } else {
+      alert(data.error||'Ошибка записи');
+      btn.disabled=false; btn.textContent='✅ Записаться';
+    }
+  } catch(e){
+    alert('Ошибка соединения. Попробуйте снова.');
+    btn.disabled=false; btn.textContent='✅ Записаться';
+  }
+}
+
+function payKaspi(){
+  const clinic_phone='+77001234567';
+  const amount=state.selectedService?.price_from||0;
+  window.open(`https://pay.kaspi.kz/pay/dent-plus?amount=${amount}`,'_blank');
+}
+
+function resetBooking(){
+  state.selectedService=null; state.selectedDoctor=null;
+  state.selectedDate=null; state.selectedTime=null;
+  showStep('service');
+  document.querySelectorAll('.service-item').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('btnStep1').disabled=true;
+}
+
+function showStep(name){
+  ['service','doctor','datetime','confirm','success'].forEach(s=>{
+    const el=document.getElementById('step-'+s);
+    if(el) el.classList.toggle('hidden', s!==name);
+  });
+}
+
+function goToStep(n){
+  if(n===1) showStep('service');
+  else if(n===2) showStep('doctor');
+  else if(n===3){showStep('datetime');renderCalendar();}
+}
+
+// ═══════════════ DENTAL CHART ═══════════════
+async function loadDentalChart(){
+  try{
+    const chart=await fetch(`${API}/api/patient/chart/${USER_ID}`).then(r=>r.json());
+    state.chart=chart;
+  } catch(e){state.chart={};}
+  renderTeeth();
+}
+
+const TOOTH_LABELS = {
+  18:'М3',17:'М2',16:'М1',15:'П2',14:'П1',13:'Кл',12:'Р2',11:'Р1',
+  21:'Р1',22:'Р2',23:'Кл',24:'П1',25:'П2',26:'М1',27:'М2',28:'М3',
+  48:'М3',47:'М2',46:'М1',45:'П2',44:'П1',43:'Кл',42:'Р2',41:'Р1',
+  31:'Р1',32:'Р2',33:'Кл',34:'П1',35:'П2',36:'М1',37:'М2',38:'М3'
+};
+
+function renderTeeth(){
+  const statusClass=(n)=>state.chart[n]?.status||'healthy';
+  const renderRow=(nums,elId)=>{
+    const el=document.getElementById(elId);
+    el.innerHTML=nums.map(n=>`
+      <div class="tooth ${statusClass(n)}" onclick="openToothModal(${n})">
+        ${getToothIcon(statusClass(n))}
+        <div class="tooth-num">${n}</div>
+      </div>`).join('');
+  };
+  renderRow([18,17,16,15,14,13,12,11],'upperRight');
+  renderRow([21,22,23,24,25,26,27,28],'upperLeft');
+  renderRow([31,32,33,34,35,36,37,38],'lowerLeft');
+  renderRow([41,42,43,44,45,46,47,48],'lowerRight');
+}
+
+function getToothIcon(status){
+  const icons={healthy:'✓',caries:'⚠',treated:'💊',extracted:'✕',crown:'👑',implant:'🔩'};
+  return icons[status]||'?';
+}
+
+function openToothModal(num){
+  const status=state.chart[num]?.status||'healthy';
+  const statusNames={healthy:'Здоровый',caries:'Кариес',treated:'Пролечен',extracted:'Удалён',crown:'Коронка',implant:'Имплант'};
+  document.getElementById('modalToothTitle').textContent=`Зуб #${num} (${TOOTH_LABELS[num]||''}) — ${statusNames[status]||status}`;
+  const grid=document.getElementById('toothStatusGrid');
+  const statuses=['healthy','caries','treated','extracted','crown','implant'];
+  const labels=['Здоровый','Кариес','Пролечен','Удалён','Коронка','Имплант'];
+  const colors=['#34a853','#f59e0b','#1a73e8','#ea4335','#7c3aed','#059669'];
+  grid.innerHTML=statuses.map((s,i)=>`
+    <button onclick="updateTooth(${num},'${s}')" style="padding:10px;border-radius:10px;border:2px solid ${colors[i]};
+      background:${s===status?colors[i]:'#fff'};color:${s===status?'#fff':colors[i]};
+      font-size:13px;font-weight:600;cursor:pointer">${labels[i]}</button>`).join('');
+  document.getElementById('toothModal').style.display='flex';
+  if(tg) tg.HapticFeedback?.selectionChanged();
+}
+
+async function updateTooth(num, status){
+  await fetch(`${API}/api/patient/chart`,{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({patient_id:USER_ID,tooth_number:num,status})
+  });
+  if(!state.chart[num]) state.chart[num]={};
+  state.chart[num].status=status;
+  renderTeeth();
+  closeToothModal();
+}
+
+function closeToothModal(){
+  document.getElementById('toothModal').style.display='none';
+}
+
+// ═══════════════ TREATMENTS ═══════════════
+async function loadTreatments(){
+  try{
+    const treats=await fetch(`${API}/api/patient/treatments/${USER_ID}`).then(r=>r.json());
+    state.treatments=treats;
+    const el=document.getElementById('treatmentHistory');
+    if(!treats.length){
+      el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><h3>Нет истории лечения</h3></div>';
+      return;
+    }
+    el.innerHTML=`<div class="card">${treats.map(t=>`
+      <div class="treatment-item">
+        ${t.tooth_number?`<span class="treat-tooth">🦷 Зуб #${t.tooth_number}</span>`:''}
+        <div class="treat-proc">${t.procedure_name}</div>
+        ${t.diagnosis?`<div class="treat-meta">🔍 ${t.diagnosis}</div>`:''}
+        <div class="treat-meta">👨‍⚕️ ${t.doctor_name} · 📅 ${t.date} · 💰 ${fmtPrice(t.price)}</div>
+      </div>`).join('')}</div>`;
+  } catch(e){}
+}
+
+// ═══════════════ APPOINTMENTS ═══════════════
+async function loadAppointments(){
+  try{
+    const appts=await fetch(`${API}/api/patient/appointments/${USER_ID}`).then(r=>r.json());
+    const el=document.getElementById('appointmentsList');
+    if(!appts.length){
+      el.innerHTML=`<div class="empty"><div class="empty-icon">📅</div>
+        <h3>Нет записей</h3><p>Запишитесь к врачу на вкладке "Запись"</p></div>`;
+      return;
+    }
+    const statusMap={pending:{cls:'status-pending',txt:'🟡 Ожидает подтверждения'},
+      confirmed:{cls:'status-confirmed',txt:'✅ Подтверждено'},
+      done:{cls:'status-done',txt:'💚 Выполнено'},
+      cancelled:{cls:'status-cancelled',txt:'❌ Отменено'}};
+    el.innerHTML=appts.map(a=>{
+      const s=statusMap[a.status]||{cls:'status-pending',txt:a.status};
+      const upcoming=a.appt_date>=new Date().toISOString().split('T')[0];
+      return `<div class="appt-card" style="border-left-color:${upcoming?'var(--blue)':'var(--gray)'}">
+        <div><span class="appt-status ${s.cls}">${s.txt}</span></div>
+        <div class="appt-date">📅 ${formatDate(a.appt_date)} · 🕐 ${a.appt_time}</div>
+        <div class="appt-detail">🦷 ${a.emoji||''} ${a.service_name||'Консультация'}</div>
+        <div class="appt-detail">👨‍⚕️ ${a.doctor_name} (${a.speciality})</div>
+        ${a.price_from?`<div class="appt-detail">💰 от ${fmtPrice(a.price_from)}</div>`:''}
+        ${upcoming && a.status==='done'?`<button class="btn btn-secondary" style="margin-top:10px;padding:8px" onclick="openReview(${a.id},${a.doctor_id})">⭐ Оставить отзыв</button>`:''}
+      </div>`;
+    }).join('');
+  } catch(e){}
+}
+
+// ═══════════════ PROFILE ═══════════════
+async function loadProfile(){
+  document.getElementById('profileName').textContent = USER_NAME;
+  try{
+    const appts = await fetch(`${API}/api/patient/appointments/${USER_ID}`).then(r=>r.json());
+    const upcoming = appts.filter(a=>a.appt_date>=new Date().toISOString().split('T')[0]&&a.status!=='cancelled').length;
+    const done = appts.filter(a=>a.status==='done').length;
+    document.getElementById('profileStats').innerHTML=`
+      <div class="stat-card"><div class="stat-value">${upcoming}</div><div class="stat-label">Предстоящих записей</div></div>
+      <div class="stat-card"><div class="stat-value">${done}</div><div class="stat-label">Завершённых приёмов</div></div>`;
+    document.getElementById('loyaltyPoints').textContent = done * 100;
+    document.getElementById('profileSub').textContent = `Посещений: ${done}`;
+  } catch(e){}
+}
+
+// ═══════════════ REVIEW ═══════════════
+let currentRating=0, currentApptId=null, currentDoctorId=null;
+function openReview(apptId, doctorId){
+  currentApptId=apptId; currentDoctorId=doctorId;
+  switchTab('profile');
+  document.getElementById('reviewBlock').scrollIntoView({behavior:'smooth'});
+}
+function setRating(r){
+  currentRating=r;
+  document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('active',i<r));
+  if(tg) tg.HapticFeedback?.selectionChanged();
+}
+async function submitReview(){
+  if(!currentRating){alert('Пожалуйста, выберите оценку');return;}
+  const comment=document.getElementById('reviewText').value;
+  await fetch(`${API}/api/review`,{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({clinic_id:CLINIC_ID,patient_id:USER_ID,
+      doctor_id:currentDoctorId,appointment_id:currentApptId,
+      rating:currentRating,comment})
+  });
+  document.getElementById('reviewBlock').innerHTML=
+    `<div class="empty"><div class="empty-icon">🙏</div><h3>Спасибо за отзыв!</h3><p>Ваше мнение важно для нас</p></div>`;
+  if(tg) tg.HapticFeedback?.notificationOccurred('success');
+}
+
+// ═══════════════ UTILS ═══════════════
+function fmtPrice(n){return n?.toLocaleString('ru-RU')+' тг'||'—'}
+function formatDate(d){
+  if(!d) return '—';
+  const months=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  const dt=new Date(d);
+  return `${dt.getDate()} ${months[dt.getMonth()]} ${dt.getFullYear()}`;
+}
+
+init();
+</script>
+</body>
+</html>

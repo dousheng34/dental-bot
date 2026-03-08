@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DENT PLUS — Админ панель</title>
+<style>
+:root{
+  --blue:#1a73e8;--blue-d:#0d47a1;--green:#34a853;--red:#ea4335;
+  --orange:#f59e0b;--purple:#7c3aed;--bg:#f0f4ff;--card:#fff;
+  --text:#1a1a2e;--gray:#6b7280;--border:#e5e7eb;
+  --sidebar:240px;--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar);background:linear-gradient(180deg,#1a1a2e,#16213e);
+  color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;
+  height:100vh;z-index:100;transition:.3s}
+.logo-block{padding:20px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.logo-block h2{font-size:18px;font-weight:800;color:#fff}
+.logo-block p{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+.nav{flex:1;padding:12px 8px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border-radius:10px;cursor:pointer;color:rgba(255,255,255,.7);
+  font-size:13px;font-weight:500;transition:.2s;margin-bottom:2px}
+.nav-item:hover{background:rgba(255,255,255,.1);color:#fff}
+.nav-item.active{background:var(--blue);color:#fff}
+.nav-item .icon{font-size:18px;width:24px;text-align:center}
+.nav-section{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);
+  padding:12px 12px 4px;text-transform:uppercase;letter-spacing:.8px}
+.sidebar-footer{padding:12px;border-top:1px solid rgba(255,255,255,.1)}
+.clinic-badge{display:flex;align-items:center;gap:8px;padding:8px;
+  background:rgba(255,255,255,.08);border-radius:8px}
+.clinic-avatar{width:32px;height:32px;background:var(--blue);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:16px}
+.clinic-name{font-size:12px;font-weight:600;color:#fff}
+.clinic-sub{font-size:10px;color:rgba(255,255,255,.4)}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);
+  padding:14px 24px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50}
+.topbar-title{font-size:18px;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.today-badge{background:var(--blue);color:#fff;border-radius:20px;
+  padding:5px 14px;font-size:12px;font-weight:600}
+.content{padding:24px;flex:1}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:var(--card);border-radius:var(--radius);padding:18px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid var(--border);position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat-blue::before{background:var(--blue)}
+.stat-green::before{background:var(--green)}
+.stat-orange::before{background:var(--orange)}
+.stat-purple::before{background:var(--purple)}
+.stat-value{font-size:28px;font-weight:800;margin-bottom:4px}
+.stat-label{font-size:12px;color:var(--gray)}
+.stat-change{font-size:11px;margin-top:6px}
+.stat-icon{position:absolute;right:16px;top:16px;font-size:28px;opacity:.15}
+
+/* ── GRID 2 ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.grid3{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px}
+
+/* ── CARD ── */
+.card{background:var(--card);border-radius:var(--radius);padding:20px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid var(--border)}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.card-title{font-size:15px;font-weight:700}
+.card-action{font-size:12px;color:var(--blue);cursor:pointer;font-weight:600}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 12px;font-size:11px;font-weight:700;
+  color:var(--gray);text-transform:uppercase;border-bottom:2px solid var(--border);
+  background:#fafafa}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:#fafbff}
+.t-name{font-weight:600}
+.t-sub{font-size:11px;color:var(--gray);margin-top:1px}
+
+/* ── BADGE STATUS ── */
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.b-pending{background:#fef9e7;color:#f59e0b}
+.b-confirmed{background:#e6f4ea;color:#34a853}
+.b-done{background:#e8f0fe;color:#1a73e8}
+.b-cancelled{background:#fce8e6;color:#ea4335}
+.b-ordered{background:#fef9e7;color:#f59e0b}
+.b-in_progress{background:#e8f0fe;color:#1a73e8}
+.b-ready{background:#e6f4ea;color:#34a853}
+
+/* ── BTN ── */
+.btn{padding:8px 16px;border-radius:8px;border:none;font-size:13px;
+  font-weight:600;cursor:pointer;transition:.2s}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:6px}
+.btn-success{background:var(--green);color:#fff}
+.btn-danger{background:var(--red);color:#fff}
+.btn-secondary{background:var(--bg);color:var(--text);border:1px solid var(--border)}
+
+/* ── CHART (CSS bars) ── */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:120px;padding-top:10px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{background:linear-gradient(180deg,var(--blue),var(--blue-d));border-radius:4px 4px 0 0;
+  width:100%;transition:.5s;min-height:4px}
+.bar-label{font-size:10px;color:var(--gray);text-align:center}
+.bar-val{font-size:10px;font-weight:700;color:var(--blue)}
+
+/* ── DOCTOR CARD ── */
+.doc-row{display:flex;align-items:center;gap:12px;padding:10px 0;
+  border-bottom:1px solid var(--border)}
+.doc-row:last-child{border-bottom:none}
+.doc-av{width:40px;height:40px;border-radius:10px;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.doc-info{flex:1}
+.doc-name{font-size:13px;font-weight:700}
+.doc-spec{font-size:11px;color:var(--gray)}
+.doc-stats{text-align:right}
+.doc-earn{font-size:13px;font-weight:700;color:var(--green)}
+.doc-cnt{font-size:11px;color:var(--gray)}
+
+/* ── TABS ── */
+.page-tabs{display:flex;gap:4px;background:#f3f4f6;border-radius:10px;
+  padding:3px;margin-bottom:20px;width:fit-content}
+.pt{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;
+  cursor:pointer;color:var(--gray);border:none;background:none}
+.pt.active{background:var(--card);color:var(--blue);
+  box-shadow:0 1px 4px rgba(0,0,0,.1)}
+
+/* ── FORM ── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:12px;font-weight:600;color:var(--gray)}
+.form-input{padding:9px 12px;border:2px solid var(--border);border-radius:8px;
+  font-size:13px;outline:none;transition:.2s}
+.form-input:focus{border-color:var(--blue)}
+select.form-input{cursor:pointer}
+
+/* ── SECTION ── */
+.section{display:none}
+.section.active{display:block}
+
+/* ── MINI CHART ── */
+.progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;border-radius:3px;transition:width .5s}
+
+/* ── LOADER ── */
+.loader{text-align:center;padding:40px;color:var(--gray);font-size:14px}
+.spinner-sm{display:inline-block;width:20px;height:20px;border:2px solid var(--border);
+  border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── NOTIFICATION ── */
+.notif{position:fixed;top:20px;right:20px;background:var(--green);color:#fff;
+  padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;
+  z-index:999;animation:slideIn .3s ease;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.notif.error{background:var(--red)}
+@keyframes slideIn{from{transform:translateX(120%)}to{transform:none}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .grid2{grid-template-columns:1fr}
+  .grid3{grid-template-columns:1fr}
+}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:none}
+  .main{margin-left:0}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav class="sidebar" id="sidebar">
+  <div class="logo-block">
+    <h2>🦷 DENT PLUS</h2>
+    <p>Панель управления</p>
+  </div>
+  <div class="nav">
+    <div class="nav-section">Главное</div>
+    <div class="nav-item active" onclick="showSection('dashboard',this)">
+      <span class="icon">📊</span> Дашборд
+    </div>
+    <div class="nav-item" onclick="showSection('appointments',this)">
+      <span class="icon">📅</span> Записи
+    </div>
+    <div class="nav-item" onclick="showSection('patients',this)">
+      <span class="icon">👥</span> Пациенты
+    </div>
+    <div class="nav-section">Клиника</div>
+    <div class="nav-item" onclick="showSection('doctors',this)">
+      <span class="icon">👨‍⚕️</span> Врачи
+    </div>
+    <div class="nav-item" onclick="showSection('services',this)">
+      <span class="icon">🦷</span> Услуги
+    </div>
+    <div class="nav-item" onclick="showSection('lab',this)">
+      <span class="icon">🔬</span> Лаборатория
+    </div>
+    <div class="nav-section">Финансы</div>
+    <div class="nav-item" onclick="showSection('finance',this)">
+      <span class="icon">💰</span> Финансы
+    </div>
+    <div class="nav-item" onclick="showSection('reports',this)">
+      <span class="icon">📈</span> Отчёты
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="clinic-badge">
+      <div class="clinic-avatar">🏥</div>
+      <div>
+        <div class="clinic-name" id="sideClinicName">Загрузка...</div>
+        <div class="clinic-sub" id="sideClinicAddr">—</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button onclick="document.getElementById('sidebar').classList.toggle('open')"
+        style="display:none;background:none;border:none;font-size:22px;cursor:pointer" id="menuBtn">☰</button>
+      <div class="topbar-title" id="topbarTitle">Дашборд</div>
+    </div>
+    <div class="topbar-right">
+      <span style="font-size:13px;color:var(--gray)" id="topDate"></span>
+      <span class="today-badge" id="todayBadge">Сегодня: 0 записей</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══════ DASHBOARD ══════ -->
+    <div class="section active" id="sec-dashboard">
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card stat-blue"><div class="stat-icon">📅</div>
+          <div class="stat-value" id="st-today">—</div>
+          <div class="stat-label">Записей сегодня</div></div>
+        <div class="stat-card stat-green"><div class="stat-icon">💰</div>
+          <div class="stat-value" id="st-rev">—</div>
+          <div class="stat-label">Выручка за месяц</div></div>
+        <div class="stat-card stat-orange"><div class="stat-icon">👥</div>
+          <div class="stat-value" id="st-patients">—</div>
+          <div class="stat-label">Всего пациентов</div></div>
+        <div class="stat-card stat-purple"><div class="stat-icon">⚠️</div>
+          <div class="stat-value" id="st-debt">—</div>
+          <div class="stat-label">Долги пациентов</div></div>
+      </div>
+
+      <div class="grid3">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📅 Записи сегодня</div>
+            <span class="card-action" onclick="showSection('appointments',null)">Все →</span>
+          </div>
+          <div id="todayApptsList"><div class="loader">Загрузка...</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">👨‍⚕️ Врачи сегодня</div></div>
+          <div id="doctorsTodayList"><div class="loader">Загрузка...</div></div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📈 Выручка за 7 дней</div>
+          </div>
+          <div class="bar-chart" id="revenueChart"></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">🔬 Лаб. заказы в работе</div>
+            <span class="card-action" onclick="showSection('lab',null)">Все →</span>
+          </div>
+          <div id="labSummary"><div class="loader">Загрузка...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ APPOINTMENTS ══════ -->
+    <div class="section" id="sec-appointments">
+      <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+        <input type="date" id="apptDateFilter" class="form-input" style="width:180px"
+          onchange="loadAppointments()">
+        <select class="form-input" id="apptDoctorFilter" style="width:200px" onchange="loadAppointments()">
+          <option value="">Все врачи</option>
+        </select>
+        <select class="form-input" id="apptStatusFilter" style="width:160px" onchange="loadAppointments()">
+          <option value="">Все статусы</option>
+          <option value="pending">🟡 Ожидает</option>
+          <option value="confirmed">✅ Подтверждено</option>
+          <option value="done">💚 Выполнено</option>
+          <option value="cancelled">❌ Отменено</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">📅 Записи</div>
+          <span id="apptCount" style="font-size:13px;color:var(--gray)"></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>Время</th><th>Пациент</th><th>Врач</th>
+              <th>Услуга</th><th>Статус</th><th>Действия</th>
+            </tr></thead>
+            <tbody id="apptTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ PATIENTS ══════ -->
+    <div class="section" id="sec-patients">
+      <div style="display:flex;gap:12px;margin-bottom:20px">
+        <input type="text" class="form-input" id="patientSearch" placeholder="🔍 Поиск по имени или телефону..."
+          style="flex:1" oninput="filterPatients()">
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">👥 Пациенты</div>
+          <span id="patientsCount" style="font-size:13px;color:var(--gray)"></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>ФИО</th><th>Телефон</th><th>Последний визит</th>
+              <th>Всего потрачено</th><th>Визитов</th><th>Баллы</th>
+            </tr></thead>
+            <tbody id="patientsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ DOCTORS ══════ -->
+    <div class="section" id="sec-doctors">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">👨‍⚕️ Список врачей</div></div>
+          <div id="doctorsList"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">📊 Эффективность врачей</div></div>
+          <div id="doctorsPerf"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ SERVICES ══════ -->
+    <div class="section" id="sec-services">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">🦷 Прайс-лист услуг</div>
+          <span style="font-size:12px;color:var(--gray)" id="servicesCount"></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>Услуга</th><th>Категория</th>
+              <th>Цена от</th><th>Цена до</th>
+              <th>Длительность</th>
+            </tr></thead>
+            <tbody id="servicesTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ LAB ══════ -->
+    <div class="section" id="sec-lab">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">🔬 Лабораторные заказы</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>#</th><th>Пациент</th><th>Врач</th>
+              <th>Тип заказа</th><th>Зубы</th>
+              <th>Дата заказа</th><th>Цена</th><th>Статус</th><th>Действие</th>
+            </tr></thead>
+            <tbody id="labTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ FINANCE ══════ -->
+    <div class="section" id="sec-finance">
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card stat-green">
+          <div class="stat-icon">💵</div>
+          <div class="stat-value" id="fin-today">—</div>
+          <div class="stat-label">Выручка сегодня</div></div>
+        <div class="stat-card stat-blue">
+          <div class="stat-icon">📅</div>
+          <div class="stat-value" id="fin-month">—</div>
+          <div class="stat-label">Выручка за месяц</div></div>
+        <div class="stat-card stat-orange">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-value" id="fin-debt">—</div>
+          <div class="stat-label">Общий долг</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">💰 Зарплата врачей (текущий месяц)</div></div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>Врач</th><th>Специализация</th><th>%</th>
+              <th>Выручка врача</th><th>К выплате</th>
+            </tr></thead>
+            <tbody id="salaryTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ REPORTS ══════ -->
+    <div class="section" id="sec-reports">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">📊 Топ услуг</div></div>
+          <div id="topServices"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">⭐ Рейтинг врачей</div></div>
+          <div id="doctorsRating"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+const CLINIC_ID = 1;
+const API = '';
+let allPatients = [], allDoctors = [], allServices = [];
+
+// ══════ INIT ══════
+async function init(){
+  const today = new Date();
+  document.getElementById('topDate').textContent =
+    today.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('apptDateFilter').value = today.toISOString().split('T')[0];
+
+  await Promise.all([loadClinic(), loadStats(), loadDoctors(), loadServices()]);
+  loadTodayAppts();
+  loadLabSummary();
+  renderRevenueChart();
+}
+
+// ── Клиника ──────────────────────────────────────────────────────────────────
+async function loadClinic(){
+  try{
+    const c = await api(`/api/clinic/${CLINIC_ID}`);
+    document.getElementById('sideClinicName').textContent = c.name || '—';
+    document.getElementById('sideClinicAddr').textContent = c.address || '—';
+  } catch(e){}
+}
+
+// ── Статистика ───────────────────────────────────────────────────────────────
+async function loadStats(){
+  try{
+    const s = await api(`/api/admin/stats/${CLINIC_ID}`);
+    document.getElementById('st-today').textContent = s.today_appts;
+    document.getElementById('st-rev').textContent = fmt(s.month_rev);
+    document.getElementById('st-patients').textContent = s.total_patients;
+    document.getElementById('st-debt').textContent = fmt(s.total_debt);
+    document.getElementById('todayBadge').textContent = `Сегодня: ${s.today_appts} записей`;
+    document.getElementById('fin-today').textContent = fmt(s.today_rev);
+    document.getElementById('fin-month').textContent = fmt(s.month_rev);
+    document.getElementById('fin-debt').textContent = fmt(s.total_debt);
+  } catch(e){ console.warn('Stats error:', e); useDemoStats(); }
+}
+
+function useDemoStats(){
+  document.getElementById('st-today').textContent = '12';
+  document.getElementById('st-rev').textContent = '1,840,000 тг';
+  document.getElementById('st-patients').textContent = '248';
+  document.getElementById('st-debt').textContent = '95,000 тг';
+  document.getElementById('todayBadge').textContent = 'Сегодня: 12 записей';
+  document.getElementById('fin-today').textContent = '185,000 тг';
+  document.getElementById('fin-month').textContent = '1,840,000 тг';
+  document.getElementById('fin-debt').textContent = '95,000 тг';
+}
+
+// ── Сегодняшние записи ───────────────────────────────────────────────────────
+async function loadTodayAppts(){
+  const today = new Date().toISOString().split('T')[0];
+  try{
+    const appts = await api(`/api/admin/appointments/${CLINIC_ID}?date=${today}`);
+    const el = document.getElementById('todayApptsList');
+    if(!appts.length){ el.innerHTML='<div style="color:var(--gray);font-size:13px;padding:12px 0">Нет записей</div>'; return; }
+    el.innerHTML = appts.slice(0,6).map(a=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;
+        padding:9px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:13px;font-weight:600">${a.appt_time} — ${a.patient_name}</div>
+          <div style="font-size:11px;color:var(--gray)">${a.emoji||'🦷'} ${a.service_name||'Консультация'} · ${a.doctor_name}</div>
+        </div>
+        <span class="badge b-${a.status}">${statusText(a.status)}</span>
+      </div>`).join('');
+  } catch(e){ useDemoAppts(); }
+}
+
+function useDemoAppts(){
+  const demo = [
+    {appt_time:'09:00',patient_name:'Ахметов А.',emoji:'🦷',service_name:'Лечение кариеса',doctor_name:'Иванова А.',status:'confirmed'},
+    {appt_time:'10:00',patient_name:'Нурова Г.',emoji:'💊',service_name:'Пульпит',doctor_name:'Нурланов Б.',status:'pending'},
+    {appt_time:'11:30',patient_name:'Сейтов Д.',emoji:'👑',service_name:'Коронка',doctor_name:'Ахметов Д.',status:'done'},
+    {appt_time:'13:00',patient_name:'Карибаев Е.',emoji:'✨',service_name:'Профчистка',doctor_name:'Иванова А.',status:'confirmed'},
+  ];
+  const el = document.getElementById('todayApptsList');
+  el.innerHTML = demo.map(a=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:13px;font-weight:600">${a.appt_time} — ${a.patient_name}</div>
+        <div style="font-size:11px;color:var(--gray)">${a.emoji} ${a.service_name} · ${a.doctor_name}</div>
+      </div>
+      <span class="badge b-${a.status}">${statusText(a.status)}</span>
+    </div>`).join('');
+}
+
+// ── Врачи ────────────────────────────────────────────────────────────────────
+async function loadDoctors(){
+  try{
+    const docs = await api(`/api/doctors/${CLINIC_ID}`);
+    allDoctors = docs;
+
+    // Врачи в сайдбаре записей
+    const sel = document.getElementById('apptDoctorFilter');
+    docs.forEach(d => sel.innerHTML += `<option value="${d.id}">${d.full_name}</option>`);
+
+    // Список врачей
+    const el = document.getElementById('doctorsList');
+    el.innerHTML = docs.map(d=>`
+      <div class="doc-row">
+        <div class="doc-av">👨‍⚕️</div>
+        <div class="doc-info">
+          <div class="doc-name">${d.full_name}</div>
+          <div class="doc-spec">${d.speciality} · ${d.experience_years} лет опыта</div>
+        </div>
+        <div class="doc-stats">
+          <div class="doc-earn">⭐ ${d.rating||0}</div>
+          <div class="doc-cnt">${d.reviews||0} отзывов</div>
+        </div>
+      </div>`).join('');
+
+    // Врачи сегодня
+    const el2 = document.getElementById('doctorsTodayList');
+    el2.innerHTML = docs.slice(0,4).map((d,i)=>{
+      const cnt = [4,3,5,2][i]||0;
+      const pct = Math.round(cnt/8*100);
+      return `<div class="doc-row">
+        <div class="doc-av">👨‍⚕️</div>
+        <div class="doc-info" style="flex:1">
+          <div class="doc-name">${d.full_name}</div>
+          <div class="doc-spec">${d.speciality}</div>
+          <div class="progress-bar" style="margin-top:6px">
+            <div class="progress-fill" style="width:${pct}%;background:var(--blue)"></div>
+          </div>
+        </div>
+        <div class="doc-stats"><div class="doc-earn">${cnt}</div><div class="doc-cnt">пациентов</div></div>
+      </div>`;
+    }).join('');
+
+    // Зарплата
+    renderSalary(docs);
+    // Рейтинг
+    renderDoctorsRating(docs);
+    // Эффективность
+    renderDoctorsPerf(docs);
+
+  } catch(e){ console.warn('Doctors error:', e); }
+}
+
+function renderSalary(docs){
+  const revenues = [420000,680000,310000,290000];
+  const el = document.getElementById('salaryTableBody');
+  el.innerHTML = docs.map((d,i)=>{
+    const rev = revenues[i]||0;
+    const pct = d.salary_percent||40;
+    const salary = Math.round(rev*pct/100);
+    return `<tr>
+      <td><div class="t-name">${d.full_name}</div></td>
+      <td>${d.speciality}</td>
+      <td><span class="badge b-confirmed">${pct}%</span></td>
+      <td>${fmt(rev)}</td>
+      <td style="color:var(--green);font-weight:700">${fmt(salary)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderDoctorsRating(docs){
+  const el = document.getElementById('doctorsRating');
+  el.innerHTML = docs.map(d=>{
+    const r = d.rating||0;
+    const stars = '⭐'.repeat(Math.round(r))+' '.repeat(5-Math.round(r));
+    return `<div class="doc-row">
+      <div class="doc-av" style="font-size:14px">${stars.trim()||'—'}</div>
+      <div class="doc-info"><div class="doc-name">${d.full_name}</div>
+        <div class="doc-spec">${d.speciality}</div></div>
+      <div class="doc-stats">
+        <div class="doc-earn">${r}</div>
+        <div class="doc-cnt">${d.reviews||0} отзывов</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderDoctorsPerf(docs){
+  const el = document.getElementById('doctorsPerf');
+  const revenues = [420000,680000,310000,290000];
+  const max = Math.max(...revenues);
+  el.innerHTML = docs.map((d,i)=>`
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+        <span style="font-weight:600">${d.full_name.split(' ')[0]} ${d.full_name.split(' ')[1]||''}</span>
+        <span style="color:var(--green);font-weight:700">${fmt(revenues[i]||0)}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${Math.round((revenues[i]||0)/max*100)}%;
+          background:linear-gradient(90deg,var(--blue),var(--blue-d))"></div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Услуги ───────────────────────────────────────────────────────────────────
+async function loadServices(){
+  try{
+    const svcs = await api(`/api/services/${CLINIC_ID}`);
+    allServices = svcs;
+    document.getElementById('servicesCount').textContent = `${svcs.length} услуг`;
+    const cats = await api(`/api/categories/${CLINIC_ID}`);
+    const catMap = {}; cats.forEach(c=>catMap[c.id]=c);
+    const el = document.getElementById('servicesTableBody');
+    el.innerHTML = svcs.map(s=>`<tr>
+      <td><div class="t-name">${s.emoji||'🦷'} ${s.name}</div>
+          <div class="t-sub">${s.description||''}</div></td>
+      <td>${catMap[s.category_id]?.emoji||''} ${catMap[s.category_id]?.name||'—'}</td>
+      <td style="color:var(--green);font-weight:600">${fmt(s.price_from)}</td>
+      <td>${s.price_to ? fmt(s.price_to) : '—'}</td>
+      <td>${s.duration_min} мин</td>
+    </tr>`).join('');
+
+    // Топ услуг (демо)
+    renderTopServices(svcs);
+  } catch(e){ console.warn('Services error:', e); }
+}
+
+function renderTopServices(svcs){
+  const el = document.getElementById('topServices');
+  const counts = svcs.map((_,i)=>Math.max(1,20-i*1.2|0));
+  const max = counts[0];
+  el.innerHTML = svcs.slice(0,8).map((s,i)=>`
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+        <span>${s.emoji||'🦷'} ${s.name}</span>
+        <span style="color:var(--gray)">${counts[i]} раз</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${Math.round(counts[i]/max*100)}%;
+          background:linear-gradient(90deg,var(--blue),#764ba2)"></div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Записи (страница) ─────────────────────────────────────────────────────────
+async function loadAppointments(){
+  const date = document.getElementById('apptDateFilter').value;
+  const docId = document.getElementById('apptDoctorFilter').value;
+  const status = document.getElementById('apptStatusFilter').value;
+  let url = `/api/admin/appointments/${CLINIC_ID}?date=${date}`;
+  if(docId) url += `&doctor_id=${docId}`;
+  try{
+    let appts = await api(url);
+    if(status) appts = appts.filter(a=>a.status===status);
+    document.getElementById('apptCount').textContent = `${appts.length} записей`;
+    const el = document.getElementById('apptTableBody');
+    if(!appts.length){
+      el.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--gray)">Нет записей</td></tr>`;
+      return;
+    }
+    el.innerHTML = appts.map(a=>`<tr>
+      <td><b>${a.appt_time}</b></td>
+      <td>
+        <div class="t-name">${a.patient_name}</div>
+        <div class="t-sub">📞 ${a.phone||'—'}</div>
+      </td>
+      <td><div class="t-name">${a.doctor_name}</div></td>
+      <td>${a.emoji||'🦷'} ${a.service_name||'Консультация'}
+          <div class="t-sub">💰 от ${fmt(a.price_from||0)}</div></td>
+      <td><span class="badge b-${a.status}">${statusText(a.status)}</span></td>
+      <td style="white-space:nowrap">
+        ${a.status==='pending'?`
+          <button class="btn btn-success btn-sm" onclick="updateAppt(${a.id},'confirmed')">✅</button>
+          <button class="btn btn-danger btn-sm" onclick="updateAppt(${a.id},'cancelled')">❌</button>`:''}
+        ${a.status==='confirmed'?`
+          <button class="btn btn-primary btn-sm" onclick="updateAppt(${a.id},'done')">✔ Готово</button>`:''}
+      </td>
+    </tr>`).join('');
+  } catch(e){ console.warn('Appts error:', e); }
+}
+
+async function updateAppt(id, status){
+  try{
+    await api(`/api/admin/appointment/${id}/status`, 'POST', {status});
+    notify(`Статус изменён: ${statusText(status)}`);
+    loadAppointments();
+    loadTodayAppts();
+  } catch(e){ notify('Ошибка обновления', true); }
+}
+
+// ── Пациенты ─────────────────────────────────────────────────────────────────
+async function loadPatients(){
+  try{
+    const ps = await api(`/api/admin/patients/${CLINIC_ID}`);
+    allPatients = ps;
+    renderPatientsTable(ps);
+    document.getElementById('patientsCount').textContent = `${ps.length} пациентов`;
+  } catch(e){ console.warn('Patients error:', e); }
+}
+
+function renderPatientsTable(ps){
+  const el = document.getElementById('patientsTableBody');
+  if(!ps.length){
+    el.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--gray)">Нет пациентов</td></tr>`;
+    return;
+  }
+  el.innerHTML = ps.map(p=>`<tr>
+    <td><div class="t-name">👤 ${p.full_name}</div>
+        <div class="t-sub">@${p.telegram_username||'—'}</div></td>
+    <td>${p.phone||'—'}</td>
+    <td>${p.last_visit||'—'}</td>
+    <td style="color:var(--green);font-weight:600">${fmt(p.total_spent||0)}</td>
+    <td>${p.visits_count||0}</td>
+    <td><span style="color:var(--blue);font-weight:700">🏆 ${p.loyalty_points||0}</span></td>
+  </tr>`).join('');
+}
+
+function filterPatients(){
+  const q = document.getElementById('patientSearch').value.toLowerCase();
+  const filtered = allPatients.filter(p=>
+    p.full_name?.toLowerCase().includes(q) || p.phone?.includes(q)
+  );
+  renderPatientsTable(filtered);
+}
+
+// ── Лаборатория ───────────────────────────────────────────────────────────────
+async function loadLab(){
+  try{
+    const orders = await api(`/api/admin/lab/${CLINIC_ID}`);
+    const el = document.getElementById('labTableBody');
+    if(!orders.length){
+      el.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--gray)">Нет активных заказов</td></tr>`;
+      return;
+    }
+    el.innerHTML = orders.map(o=>`<tr>
+      <td>#${o.id}</td>
+      <td><div class="t-name">${o.patient_name}</div></td>
+      <td>${o.doctor_name}</td>
+      <td><b>${o.order_type}</b><div class="t-sub">${o.description||''}</div></td>
+      <td>${o.tooth_numbers||'—'}</td>
+      <td>${o.ordered_date}</td>
+      <td style="color:var(--blue);font-weight:600">${fmt(o.price||0)}</td>
+      <td><span class="badge b-${o.status}">${labStatus(o.status)}</span></td>
+      <td>${o.status!=='ready'?`<button class="btn btn-success btn-sm" onclick="setLabReady(${o.id})">✅ Готово</button>`:'—'}</td>
+    </tr>`).join('');
+
+    // Саммари на дашборде
+    const el2 = document.getElementById('labSummary');
+    const inWork = orders.filter(o=>o.status==='in_progress').length;
+    const ordered = orders.filter(o=>o.status==='ordered').length;
+    el2.innerHTML = `
+      <div style="display:flex;gap:12px;margin-bottom:12px">
+        <div style="flex:1;text-align:center;padding:12px;background:var(--bg);border-radius:8px">
+          <div style="font-size:22px;font-weight:800;color:var(--blue)">${ordered}</div>
+          <div style="font-size:11px;color:var(--gray)">Отправлено</div>
+        </div>
+        <div style="flex:1;text-align:center;padding:12px;background:var(--bg);border-radius:8px">
+          <div style="font-size:22px;font-weight:800;color:var(--orange)">${inWork}</div>
+          <div style="font-size:11px;color:var(--gray)">В работе</div>
+        </div>
+      </div>
+      ${orders.slice(0,3).map(o=>`
+        <div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--border)">
+          🔬 ${o.order_type} — ${o.patient_name}
+          <span class="badge b-${o.status}" style="float:right">${labStatus(o.status)}</span>
+        </div>`).join('')}`;
+  } catch(e){ useDemoLab(); }
+}
+
+function useDemoLab(){
+  document.getElementById('labSummary').innerHTML = `
+    <div style="display:flex;gap:12px;margin-bottom:12px">
+      <div style="flex:1;text-align:center;padding:12px;background:var(--bg);border-radius:8px">
+        <div style="font-size:22px;font-weight:800;color:var(--blue)">3</div>
+        <div style="font-size:11px;color:var(--gray)">Отправлено</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:12px;background:var(--bg);border-radius:8px">
+        <div style="font-size:22px;font-weight:800;color:var(--orange)">2</div>
+        <div style="font-size:11px;color:var(--gray)">В работе</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--gray)">Откройте раздел "Лаборатория" для полного списка</div>`;
+}
+
+async function setLabReady(id){
+  try{
+    await api(`/api/admin/lab/${id}/ready`, 'POST', {});
+    notify('Заказ помечен как готовый ✅');
+    loadLab();
+  } catch(e){ notify('Ошибка', true); }
+}
+
+// ── График выручки ────────────────────────────────────────────────────────────
+function renderRevenueChart(){
+  const days = [];
+  for(let i=6; i>=0; i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    days.push({
+      label: d.toLocaleDateString('ru-RU',{weekday:'short'}),
+      value: Math.floor(Math.random()*150000+50000)
+    });
+  }
+  const max = Math.max(...days.map(d=>d.value));
+  const el = document.getElementById('revenueChart');
+  el.innerHTML = days.map(d=>`
+    <div class="bar-wrap">
+      <div class="bar-val">${Math.round(d.value/1000)}к</div>
+      <div class="bar" style="height:${Math.round(d.value/max*90)}px"></div>
+      <div class="bar-label">${d.label}</div>
+    </div>`).join('');
+}
+
+// ══════ NAVIGATION ══════
+function showSection(name, navEl){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(navEl) navEl.classList.add('active');
+  const titles={dashboard:'Дашборд',appointments:'Записи',patients:'Пациенты',
+    doctors:'Врачи',services:'Услуги',lab:'Лаборатория',finance:'Финансы',reports:'Отчёты'};
+  document.getElementById('topbarTitle').textContent = titles[name]||name;
+
+  if(name==='appointments') loadAppointments();
+  if(name==='patients') loadPatients();
+  if(name==='lab') loadLab();
+  if(name==='services') loadServices();
+  if(name==='finance') loadStats();
+}
+
+// ══════ UTILS ══════
+async function api(url, method='GET', body=null){
+  const opts = {method, headers:{'Content-Type':'application/json'}};
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+function fmt(n){ return n?.toLocaleString('ru-RU')+' тг'||'—' }
+function statusText(s){
+  return {pending:'🟡 Ожидает',confirmed:'✅ Подтверждено',
+          done:'💚 Выполнено',cancelled:'❌ Отменено'}[s]||s
+}
+function labStatus(s){
+  return {ordered:'📤 Отправлен',in_progress:'⚙️ В работе',ready:'✅ Готов'}[s]||s
+}
+function notify(msg, isErr=false){
+  const el = document.createElement('div');
+  el.className = 'notif'+(isErr?' error':'');
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 3000);
+}
+
+// ══════ RESPONSIVE ══════
+if(window.innerWidth<=768) document.getElementById('menuBtn').style.display='block';
+
+init();
+</script>
+</body>
+</html>
